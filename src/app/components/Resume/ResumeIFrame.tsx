@@ -16,15 +16,6 @@ const getIframeInitialContent = (isA4: boolean) => {
   const width = isA4 ? A4_WIDTH_PT : LETTER_WIDTH_PT;
   const allFontFamilies = getAllFontFamiliesToLoad();
 
-  const allFontFamiliesPreloadLinks = allFontFamilies
-    .map(
-      (
-        font
-      ) => `<link rel="preload" as="font" href="/fonts/${font}-Regular.ttf" type="font/ttf" crossorigin="anonymous">
-<link rel="preload" as="font" href="/fonts/${font}-Bold.ttf" type="font/ttf" crossorigin="anonymous">`
-    )
-    .join("");
-
   const allFontFamiliesFontFaces = allFontFamilies
     .map(
       (
@@ -37,7 +28,6 @@ const getIframeInitialContent = (isA4: boolean) => {
   return `<!DOCTYPE html>
 <html>
   <head>
-    ${allFontFamiliesPreloadLinks}
     <style>
       ${allFontFamiliesFontFaces}
     </style>

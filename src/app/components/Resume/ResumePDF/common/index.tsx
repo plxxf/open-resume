@@ -3,6 +3,10 @@ import type { Style } from "@react-pdf/types";
 import { styles, spacing } from "components/Resume/ResumePDF/styles";
 import { DEBUG_RESUME_PDF_FLAG } from "lib/constants";
 import { DEFAULT_FONT_COLOR } from "lib/redux/settingsSlice";
+import {
+  useTemplate,
+  type TemplateConfig,
+} from "components/Resume/ResumePDF/templates";
 
 export const ResumePDFSection = ({
   themeColor,
@@ -10,46 +14,74 @@ export const ResumePDFSection = ({
   style = {},
   children,
 }: {
+  // Kept for compatibility with the section components; colours now come
+  // from the selected template.
   themeColor?: string;
   heading?: string;
   style?: Style;
   children: React.ReactNode;
-}) => (
-  <View
-    style={{
-      ...styles.flexCol,
-      gap: spacing["2"],
-      marginTop: spacing["5"],
-      ...style,
-    }}
-  >
-    {heading && (
-      <View style={{ ...styles.flexRow, alignItems: "center" }}>
-        {themeColor && (
-          <View
-            style={{
-              height: "3.75pt",
-              width: "30pt",
-              backgroundColor: themeColor,
-              marginRight: spacing["3.5"],
-            }}
-            debug={DEBUG_RESUME_PDF_FLAG}
-          />
-        )}
-        <Text
-          style={{
-            fontWeight: "bold",
-            letterSpacing: "0.3pt", // tracking-wide -> 0.025em * 12 pt = 0.3pt
-          }}
-          debug={DEBUG_RESUME_PDF_FLAG}
-        >
-          {heading}
-        </Text>
+}) => {
+  const template = useTemplate();
+  return (
+    <View
+      style={{
+        ...styles.flexCol,
+        gap: spacing["2"],
+        marginTop: spacing["4"],
+        ...style,
+      }}
+    >
+      {heading && <ResumePDFHeading heading={heading} template={template} />}
+      {children}
+    </View>
+  );
+};
+
+const ResumePDFHeading = ({
+  heading,
+  template,
+}: {
+  heading: string;
+  template: TemplateConfig;
+}) => {
+  const text = (
+    <Text
+      style={{
+        fontWeight: "bold",
+        letterSpacing: "0.3pt",
+        color: template.headingColor,
+        textTransform: "uppercase",
+      }}
+      debug={DEBUG_RESUME_PDF_FLAG}
+    >
+      {heading}
+    </Text>
+  );
+  if (template.headingStyle === "band") {
+    return (
+      <View
+        style={{
+          backgroundColor: template.bandColor,
+          padding: "2pt 5pt",
+        }}
+      >
+        {text}
       </View>
-    )}
-    {children}
-  </View>
-);
+    );
+  }
+  return (
+    <View
+      style={{
+        borderBottomWidth: template.headingStyle === "rule" ? "0.8pt" : "0.6pt",
+        borderBottomStyle: "solid",
+        borderBottomColor: template.ruleColor,
+        paddingBottom: "2pt",
+      }}
+    >
+      {text}
+    </View>
+  );
+};
 
 export const ResumePDFText = ({
   bold = false,

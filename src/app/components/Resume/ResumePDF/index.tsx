@@ -1,7 +1,14 @@
 import type { JSX } from "react";
 import { Page, View, Document } from "@react-pdf/renderer";
 import { styles, spacing } from "components/Resume/ResumePDF/styles";
-import { ResumePDFProfile } from "components/Resume/ResumePDF/ResumePDFProfile";
+import {
+  ResumePDFProfile,
+  ResumePDFSidebarContact,
+} from "components/Resume/ResumePDF/ResumePDFProfile";
+import {
+  TemplateContext,
+  getTemplate,
+} from "components/Resume/ResumePDF/templates";
 import { ResumePDFWorkExperience } from "components/Resume/ResumePDF/ResumePDFWorkExperience";
 import { ResumePDFEducation } from "components/Resume/ResumePDF/ResumePDFEducation";
 import { ResumePDFProject } from "components/Resume/ResumePDF/ResumePDFProject";
@@ -40,7 +47,6 @@ export const ResumePDF = ({
     resume;
   const { name } = profile;
   const {
-    fontFamily,
     fontSize,
     documentSize,
     formToHeading,
@@ -48,9 +54,20 @@ export const ResumePDF = ({
     formsOrder,
     showBulletPoints,
   } = settings;
-  const themeColor = settings.themeColor || DEFAULT_FONT_COLOR;
+  const template = getTemplate(settings.template);
+  // The PDF uses react-pdf's built-in fonts; the HTML preview uses the
+  // matching browser fonts.
+  const fontFamily = isPDF ? template.pdfFont : template.cssFont;
+  // Accent for the featured-skill dots; headings and name colours come from
+  // the template.
+  const themeColor = template.headingColor || DEFAULT_FONT_COLOR;
 
   const showFormsOrder = formsOrder.filter((form) => formToShow[form]);
+  // Modern puts skills in the side panel, so the main column skips them.
+  const mainFormsOrder = template.sidebar
+    ? showFormsOrder.filter((form) => form !== "skills")
+    : showFormsOrder;
+  const SIDEBAR_WIDTH = "32.7%"; // 200pt of a 612pt Letter page
 
   const formTypeToComponent: { [type in ShowForm]: () => JSX.Element } = {
     workExperiences: () => (
@@ -93,44 +110,79 @@ export const ResumePDF = ({
     ),
   };
 
+  const mainColumn = (
+    <>
+      <ResumePDFProfile profile={profile} isPDF={isPDF} />
+      {mainFormsOrder.map((form) => {
+        const Component = formTypeToComponent[form];
+        return <Component key={form} />;
+      })}
+    </>
+  );
+
   return (
     <>
       <Document title={`${name} Resume`} author={name} producer={"airesume"}>
-        <Page
-          size={documentSize === "A4" ? "A4" : "LETTER"}
-          style={{
-            ...styles.flexCol,
-            color: DEFAULT_FONT_COLOR,
-            fontFamily,
-            fontSize: fontSize + "pt",
-          }}
-        >
-          {Boolean(settings.themeColor) && (
-            <View
-              style={{
-                width: spacing["full"],
-                height: spacing[3.5],
-                backgroundColor: themeColor,
-              }}
-            />
-          )}
-          <View
+        <TemplateContext.Provider value={template}>
+          <Page
+            size={documentSize === "A4" ? "A4" : "LETTER"}
             style={{
               ...styles.flexCol,
-              padding: `${spacing[0]} ${spacing[20]}`,
+              position: "relative",
+              color: DEFAULT_FONT_COLOR,
+              fontFamily,
+              fontSize: fontSize + "pt",
             }}
           >
-            <ResumePDFProfile
-              profile={profile}
-              themeColor={themeColor}
-              isPDF={isPDF}
-            />
-            {showFormsOrder.map((form) => {
-              const Component = formTypeToComponent[form];
-              return <Component key={form} />;
-            })}
-          </View>
-        </Page>
+            {template.sidebar ? (
+              <>
+                {/* Side panel background, repeated on every PDF page */}
+                <View
+                  {...(isPDF ? { fixed: true } : {})}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: SIDEBAR_WIDTH,
+                    backgroundColor: template.panelColor,
+                  }}
+                />
+                <View style={{ ...styles.flexRow }}>
+                  <View
+                    style={{
+                      ...styles.flexCol,
+                      width: SIDEBAR_WIDTH,
+                      padding: "40pt 16pt 36pt 28pt",
+                    }}
+                  >
+                    <ResumePDFSidebarContact profile={profile} isPDF={isPDF} />
+                    {formToShow.skills && formTypeToComponent.skills()}
+                  </View>
+                  <View
+                    style={{
+                      ...styles.flexCol,
+                      flexGrow: 1,
+                      flexBasis: 0,
+                      padding: "36pt 40pt 36pt 22pt",
+                    }}
+                  >
+                    {mainColumn}
+                  </View>
+                </View>
+              </>
+            ) : (
+              <View
+                style={{
+                  ...styles.flexCol,
+                  padding: "36pt 50pt",
+                }}
+              >
+                {mainColumn}
+              </View>
+            )}
+          </Page>
+        </TemplateContext.Provider>
       </Document>
       <SuppressResumePDFErrorMessage />
     </>
