@@ -1,5 +1,7 @@
 export interface ResumeProfile {
   name: string;
+  /** Optional one-line title under the name, e.g. "Data Analyst". */
+  headline?: string;
   email: string;
   phone: string;
   url: string;

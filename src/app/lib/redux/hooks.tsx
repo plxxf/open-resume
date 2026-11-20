@@ -16,6 +16,7 @@ import {
   type Settings,
 } from "lib/redux/settingsSlice";
 import { deepMerge } from "lib/deep-merge";
+import { readImportFromHash, clearImportHash } from "lib/import-from-hash";
 import type { Resume } from "lib/redux/types";
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
@@ -33,10 +34,51 @@ export const useSaveStateToLocalStorageOnChange = () => {
   }, []);
 };
 
+const hasSavedResume = (state: any) => {
+  const resume = state?.resume;
+  if (!resume) return false;
+  const { profile = {}, workExperiences = [] } = resume;
+  return Boolean(
+    profile.name ||
+      profile.email ||
+      workExperiences.some((w: any) => w?.company || w?.jobTitle)
+  );
+};
+
 export const useSetInitialStore = () => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     const state = loadStateFromLocalStorage();
+
+    // A resume handed over from the airesume.blog checker (#import=…).
+    const imported = readImportFromHash(window.location.hash);
+    if (window.location.hash.startsWith("#import=")) clearImportHash();
+    if (
+      imported &&
+      (!hasSavedResume(state) ||
+        window.confirm(
+          "Replace the resume saved in this browser with the one from the airesume checker?"
+        ))
+    ) {
+      const baseSettings = state?.settings
+        ? (deepMerge(initialSettings, state.settings) as Settings)
+        : initialSettings;
+      const hasCustom = imported.resume.custom.descriptions.length > 0;
+      const settings = deepMerge(baseSettings, {
+        ...(imported.template ? { template: imported.template } : {}),
+        ...(imported.documentSize
+          ? { documentSize: imported.documentSize }
+          : {}),
+        formToShow: { custom: hasCustom },
+        ...(hasCustom && imported.customHeading
+          ? { formToHeading: { custom: imported.customHeading.toUpperCase() } }
+          : {}),
+      }) as Settings;
+      dispatch(setResume(imported.resume));
+      dispatch(setSettings(settings));
+      return;
+    }
+
     if (!state) return;
     if (state.resume) {
       // We merge the initial state with the stored state to ensure

@@ -18,6 +18,7 @@ import { ResumePDFCustom } from "components/Resume/ResumePDF/ResumePDFCustom";
 import { DEFAULT_FONT_COLOR } from "lib/redux/settingsSlice";
 import type { Settings, ShowForm } from "lib/redux/settingsSlice";
 import type { Resume } from "lib/redux/types";
+import { pruneEmpty, sectionHasContent } from "lib/resume-content";
 import { SuppressResumePDFErrorMessage } from "components/Resume/ResumePDF/common/SuppressResumePDFErrorMessage";
 
 /**
@@ -36,7 +37,7 @@ import { SuppressResumePDFErrorMessage } from "components/Resume/ResumePDF/commo
  *    https://github.com/diegomura/react-pdf/issues/239#issuecomment-487255027
  */
 export const ResumePDF = ({
-  resume,
+  resume: rawResume,
   settings,
   isPDF = false,
 }: {
@@ -44,6 +45,8 @@ export const ResumePDF = ({
   settings: Settings;
   isPDF?: boolean;
 }) => {
+  // Empty entries and sections are left out of the printed resume.
+  const resume = pruneEmpty(rawResume);
   const { profile, workExperiences, educations, projects, skills, custom } =
     resume;
   const { name } = profile;
@@ -63,7 +66,9 @@ export const ResumePDF = ({
   // the template.
   const themeColor = template.headingColor || DEFAULT_FONT_COLOR;
 
-  const showFormsOrder = formsOrder.filter((form) => formToShow[form]);
+  const showFormsOrder = formsOrder.filter(
+    (form) => formToShow[form] && sectionHasContent(resume, form)
+  );
   // Modern puts skills in the side panel, so the main column skips them.
   const mainFormsOrder = template.sidebar
     ? showFormsOrder.filter((form) => form !== "skills")
@@ -161,7 +166,8 @@ export const ResumePDF = ({
                     }}
                   >
                     <ResumePDFSidebarContact profile={profile} isPDF={isPDF} />
-                    {formToShow.skills && formTypeToComponent.skills()}
+                    {showFormsOrder.includes("skills") &&
+                      formTypeToComponent.skills()}
                   </View>
                   <View
                     style={{

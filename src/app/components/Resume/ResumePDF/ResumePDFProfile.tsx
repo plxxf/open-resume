@@ -65,7 +65,7 @@ export const ResumePDFProfile = ({
   isPDF: boolean;
 }) => {
   const template = useTemplate();
-  const { name, summary } = profile;
+  const { name, headline, summary } = profile;
   const contactItems = getContactItems(profile);
   const center = template.nameAlign === "center";
 
@@ -84,6 +84,9 @@ export const ResumePDFProfile = ({
       >
         {name}
       </ResumePDFText>
+      {headline && (
+        <ResumePDFText themeColor={CONTACT_GRAY}>{headline}</ResumePDFText>
+      )}
       {!template.sidebar && contactItems.length > 0 && (
         <View
           style={{
