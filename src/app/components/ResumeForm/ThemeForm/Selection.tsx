@@ -1,3 +1,4 @@
+"use client";
 import type { GeneralSetting } from "lib/redux/settingsSlice";
 import { PX_PER_PT } from "lib/constants";
 import {
