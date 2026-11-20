@@ -86,8 +86,18 @@ export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
 export const getTemplate = (id?: string): TemplateConfig =>
   TEMPLATES[id as TemplateId] ?? TEMPLATES.standard;
 
-export const TemplateContext = createContext<TemplateConfig>(
-  TEMPLATES.standard
-);
+export interface TemplateContextValue extends TemplateConfig {
+  // Absolute line height ("14.3pt" for 11pt text). react-pdf v4 spaces
+  // unitless line heights much wider than browsers do, so we pass points.
+  lineHeight: string;
+}
+
+export const getLineHeight = (fontSize: string | number) =>
+  `${Math.round((Number(fontSize) || 11) * 1.3 * 10) / 10}pt`;
+
+export const TemplateContext = createContext<TemplateContextValue>({
+  ...TEMPLATES.standard,
+  lineHeight: getLineHeight(11),
+});
 
 export const useTemplate = () => useContext(TemplateContext);

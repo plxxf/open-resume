@@ -5,7 +5,7 @@ import { DEBUG_RESUME_PDF_FLAG } from "lib/constants";
 import { DEFAULT_FONT_COLOR } from "lib/redux/settingsSlice";
 import {
   useTemplate,
-  type TemplateConfig,
+  type TemplateContextValue,
 } from "components/Resume/ResumePDF/templates";
 
 export const ResumePDFSection = ({
@@ -42,7 +42,7 @@ const ResumePDFHeading = ({
   template,
 }: {
   heading: string;
-  template: TemplateConfig;
+  template: TemplateContextValue;
 }) => {
   const text = (
     <Text
@@ -115,6 +115,7 @@ export const ResumePDFBulletList = ({
   items: string[];
   showBulletPoints?: boolean;
 }) => {
+  const { lineHeight } = useTemplate();
   return (
     <>
       {items.map((item, idx) => (
@@ -124,7 +125,7 @@ export const ResumePDFBulletList = ({
               style={{
                 paddingLeft: spacing["2"],
                 paddingRight: spacing["2"],
-                lineHeight: 1.3,
+                lineHeight,
               }}
               bold={true}
             >
@@ -134,7 +135,7 @@ export const ResumePDFBulletList = ({
           {/* A breaking change was introduced causing text layout to be wider than node's width
               https://github.com/diegomura/react-pdf/issues/2182. flexGrow & flexBasis fixes it */}
           <ResumePDFText
-            style={{ lineHeight: 1.3, flexGrow: 1, flexBasis: 0 }}
+            style={{ lineHeight, flexGrow: 1, flexBasis: 0 }}
           >
             {item}
           </ResumePDFText>

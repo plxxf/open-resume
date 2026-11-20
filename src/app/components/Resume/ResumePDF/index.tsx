@@ -8,6 +8,7 @@ import {
 import {
   TemplateContext,
   getTemplate,
+  getLineHeight,
 } from "components/Resume/ResumePDF/templates";
 import { ResumePDFWorkExperience } from "components/Resume/ResumePDF/ResumePDFWorkExperience";
 import { ResumePDFEducation } from "components/Resume/ResumePDF/ResumePDFEducation";
@@ -123,7 +124,9 @@ export const ResumePDF = ({
   return (
     <>
       <Document title={`${name} Resume`} author={name} producer={"airesume"}>
-        <TemplateContext.Provider value={template}>
+        <TemplateContext.Provider
+          value={{ ...template, lineHeight: getLineHeight(fontSize) }}
+        >
           <Page
             size={documentSize === "A4" ? "A4" : "LETTER"}
             style={{

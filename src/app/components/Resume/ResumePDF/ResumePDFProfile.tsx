@@ -113,7 +113,7 @@ export const ResumePDFProfile = ({
           style={{
             marginTop: spacing["1"],
             textAlign: center ? "center" : "left",
-            lineHeight: 1.3,
+            lineHeight: template.lineHeight,
           }}
         >
           {summary}
