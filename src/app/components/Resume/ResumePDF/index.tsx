@@ -148,7 +148,8 @@ export const ResumePDF = ({
                     backgroundColor: template.panelColor,
                   }}
                 />
-                <View style={{ ...styles.flexRow }}>
+                {/* position: relative keeps the columns above the panel in the HTML preview */}
+                <View style={{ ...styles.flexRow, position: "relative" }}>
                   <View
                     style={{
                       ...styles.flexCol,

@@ -29,6 +29,9 @@ const getIframeInitialContent = (isA4: boolean) => {
 <html>
   <head>
     <style>
+      /* Match react-pdf: padding is inside the width, and a page is at least one sheet tall */
+      * { box-sizing: border-box; }
+      page { min-height: ${isA4 ? 841.89 : 792}pt; }
       ${allFontFamiliesFontFaces}
     </style>
   </head>
