@@ -76,6 +76,8 @@ export const useSetInitialStore = () => {
       }) as Settings;
       dispatch(setResume(imported.resume));
       dispatch(setSettings(settings));
+      // Save right away: the change listener may not be subscribed yet.
+      saveStateToLocalStorage(store.getState());
       return;
     }
 
