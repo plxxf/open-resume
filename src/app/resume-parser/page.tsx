@@ -69,7 +69,7 @@ export default function ResumeParser() {
               Resume Parser Playground
             </Heading>
             <Paragraph smallMarginTop={true}>
-              This playground showcases the OpenResume resume parser and its
+              This playground shows the resume parser airesume uses (from OpenResume) and its
               ability to parse information from a resume PDF. Click around the
               PDF examples below to observe different parsing results.
             </Paragraph>

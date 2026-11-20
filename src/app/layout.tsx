@@ -1,10 +1,21 @@
 import "globals.css";
-import { TopNavBar } from "components/TopNavBar";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { SiteNav, SiteFooter } from "components/SiteShell";
 
-export const metadata = {
-  title: "OpenResume - Free Open-source Resume Builder and Parser",
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const serif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  variable: "--font-serif",
+});
+
+export const metadata: Metadata = {
+  title: { default: "airesume editor", template: "%s · airesume editor" },
   description:
-    "OpenResume is a free, open-source, and powerful resume builder that allows anyone to create a modern professional resume in 3 simple steps. For those who have an existing resume, OpenResume also provides a resume parser to help test and confirm its ATS readability.",
+    "Edit your resume in the browser, choose a layout and download a clean PDF. Part of airesume.blog.",
   // app.airesume.blog is a tool, not a search landing page: search traffic
   // goes to airesume.blog, so every page here is kept out of search results.
   robots: { index: false, follow: false },
@@ -17,9 +28,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <TopNavBar />
+      <body className={`${geist.variable} ${mono.variable} ${serif.variable}`}>
+        <SiteNav />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

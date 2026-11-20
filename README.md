@@ -1,5 +1,6 @@
 > **airesume fork.** This repository is a modified version of [OpenResume](https://github.com/xitanggg/open-resume) by Xitang Zhao, licensed under AGPL-3.0, and runs at https://app.airesume.blog.
 > Changes in this fork (2026-11-20): upgraded to Next.js 16 and React 19, static export for Cloudflare Pages, removed Vercel Analytics, all pages set to noindex.
+> Also changed (2026-11-20): airesume branding, navigation and footer; replaced the OpenResume marketing home page with a short start page; removed the Chinese font files.
 
 # OpenResume
 

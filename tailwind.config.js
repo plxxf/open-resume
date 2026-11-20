@@ -6,6 +6,13 @@ module.exports = {
       backgroundImage: {
         dot: "url('/assets/dots.svg')",
       },
+      colors: {
+        primary: "#2563eb",
+      },
+      fontFamily: {
+        sans: ["var(--font-geist)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
     },
   },
   corePlugins: {
