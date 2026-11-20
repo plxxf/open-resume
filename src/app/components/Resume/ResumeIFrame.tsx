@@ -114,7 +114,7 @@ const ResumeIframe = ({
   const pageHeight = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX;
   // The preview grows with the content so every page can be scrolled to.
   const height = Math.max(pageHeight, contentHeight);
-  const { pages, breaks } = getPageBreaksPx(height, isA4 ? A4_HEIGHT_PT : LETTER_HEIGHT_PT);
+  const { breaks } = getPageBreaksPx(height, isA4 ? A4_HEIGHT_PT : LETTER_HEIGHT_PT);
 
   return (
     <div
@@ -151,7 +151,7 @@ const ResumeIframe = ({
             style={{ top: `${top}px` }}
           >
             <span className="absolute right-2 top-1 rounded bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700">
-              Page {i + 2} of {pages}
+              Page {i + 2} starts about here
             </span>
           </div>
         ))}

@@ -1,6 +1,6 @@
 "use client";
 import type { JSX } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSetDefaultScale } from "components/Resume/hooks";
 import {
   MagnifyingGlassIcon,
@@ -34,6 +34,19 @@ const ResumeControlBar = ({
     update(document);
   }, [update, document]);
 
+  // Page count of the actual PDF that will be downloaded.
+  const [pageCount, setPageCount] = useState<number | null>(null);
+  useEffect(() => {
+    if (!instance.blob) return;
+    let cancelled = false;
+    instance.blob.text().then((text) => {
+      if (!cancelled) setPageCount((text.match(/\/Type \/Page\b(?!s)/g) || []).length || null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [instance.blob]);
+
   return (
     <div className="sticky bottom-0 left-0 right-0 flex h-[var(--resume-control-bar-height)] items-center justify-center px-[var(--resume-padding)] text-gray-600 lg:justify-between">
       <div className="flex items-center gap-2">
@@ -60,6 +73,12 @@ const ResumeControlBar = ({
           <span className="select-none">Autoscale</span>
         </label>
       </div>
+      <div className="flex items-center">
+      {pageCount !== null && (
+        <span className="ml-2 whitespace-nowrap text-sm text-gray-500">
+          {pageCount} {pageCount === 1 ? "page" : "pages"}
+        </span>
+      )}
       <a
         className="ml-1 flex items-center gap-1 rounded-md border border-gray-300 px-3 py-0.5 hover:bg-gray-100 lg:ml-8"
         href={instance.url!}
@@ -68,6 +87,7 @@ const ResumeControlBar = ({
         <ArrowDownTrayIcon className="h-4 w-4" />
         <span className="whitespace-nowrap">Download Resume</span>
       </a>
+      </div>
     </div>
   );
 };
