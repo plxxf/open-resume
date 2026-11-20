@@ -60,3 +60,15 @@ export const styles = StyleSheet.create({
     fill: "#525252", // text-neutral-600
   },
 });
+
+// Title on the left wraps when the column is narrow (Modern); the date on the
+// right keeps its width, so the two never overlap.
+export const LEFT_CELL = {
+  flexGrow: 1,
+  flexBasis: 0,
+  paddingRight: "8pt",
+};
+export const DATE_CELL = {
+  flexShrink: 0,
+  textAlign: "right" as const,
+};

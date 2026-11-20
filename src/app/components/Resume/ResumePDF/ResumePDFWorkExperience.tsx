@@ -4,7 +4,12 @@ import {
   ResumePDFBulletList,
   ResumePDFText,
 } from "components/Resume/ResumePDF/common";
-import { styles, spacing } from "components/Resume/ResumePDF/styles";
+import {
+  styles,
+  spacing,
+  LEFT_CELL,
+  DATE_CELL,
+} from "components/Resume/ResumePDF/styles";
 import type { ResumeWorkExperience } from "lib/redux/types";
 
 export const ResumePDFWorkExperience = ({
@@ -36,8 +41,8 @@ export const ResumePDFWorkExperience = ({
                   : spacing["1.5"],
               }}
             >
-              <ResumePDFText>{jobTitle}</ResumePDFText>
-              <ResumePDFText>{date}</ResumePDFText>
+              <ResumePDFText style={LEFT_CELL}>{jobTitle}</ResumePDFText>
+              <ResumePDFText style={DATE_CELL}>{date}</ResumePDFText>
             </View>
             <View style={{ ...styles.flexCol, marginTop: spacing["1.5"] }}>
               <ResumePDFBulletList items={descriptions} />

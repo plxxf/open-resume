@@ -4,7 +4,12 @@ import {
   ResumePDFSection,
   ResumePDFText,
 } from "components/Resume/ResumePDF/common";
-import { styles, spacing } from "components/Resume/ResumePDF/styles";
+import {
+  styles,
+  spacing,
+  LEFT_CELL,
+  DATE_CELL,
+} from "components/Resume/ResumePDF/styles";
 import type { ResumeEducation } from "lib/redux/types";
 
 export const ResumePDFEducation = ({
@@ -40,12 +45,12 @@ export const ResumePDFEducation = ({
                     : spacing["1.5"],
                 }}
               >
-                <ResumePDFText>{`${
+                <ResumePDFText style={LEFT_CELL}>{`${
                   gpa
                     ? `${degree} - ${Number(gpa) ? gpa + " GPA" : gpa}`
                     : degree
                 }`}</ResumePDFText>
-                <ResumePDFText>{date}</ResumePDFText>
+                <ResumePDFText style={DATE_CELL}>{date}</ResumePDFText>
               </View>
               {showDescriptions && (
                 <View style={{ ...styles.flexCol, marginTop: spacing["1.5"] }}>

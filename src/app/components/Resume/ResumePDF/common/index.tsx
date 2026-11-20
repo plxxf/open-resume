@@ -124,7 +124,7 @@ export const ResumePDFBulletList = ({
               style={{
                 paddingLeft: spacing["2"],
                 paddingRight: spacing["2"],
-                lineHeight: "1.3",
+                lineHeight: 1.3,
               }}
               bold={true}
             >
@@ -134,7 +134,7 @@ export const ResumePDFBulletList = ({
           {/* A breaking change was introduced causing text layout to be wider than node's width
               https://github.com/diegomura/react-pdf/issues/2182. flexGrow & flexBasis fixes it */}
           <ResumePDFText
-            style={{ lineHeight: "1.3", flexGrow: 1, flexBasis: 0 }}
+            style={{ lineHeight: 1.3, flexGrow: 1, flexBasis: 0 }}
           >
             {item}
           </ResumePDFText>
