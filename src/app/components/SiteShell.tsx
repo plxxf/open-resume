@@ -92,7 +92,7 @@ export const SiteFooter = () => {
         <div className="foot-brand">
           <Brand />
           <p>
-            Update your resume, build a better career. The airesume editor runs
+            Tailor your resume, build a better career. The airesume editor runs
             in your browser; your resume is not uploaded.
           </p>
         </div>
