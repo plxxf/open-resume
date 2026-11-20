@@ -42,7 +42,15 @@ export const groupTextItemsIntoLines = (textItems: TextItems): Lines => {
       const leftItemXEnd = leftItem.x + leftItem.width;
       const distance = currentItem.x - leftItemXEnd;
       if (distance <= typicalCharWidth) {
-        if (shouldAddSpaceBetweenText(leftItem.text, currentItem.text)) {
+        // A visible gap means a word space the PDF did not store as text
+        // (common in Word exports, especially justified lines).
+        const hasGap = distance > typicalCharWidth * 0.2;
+        const alreadySpaced =
+          /\s$/.test(leftItem.text) || /^\s/.test(currentItem.text);
+        if (
+          !alreadySpaced &&
+          (hasGap || shouldAddSpaceBetweenText(leftItem.text, currentItem.text))
+        ) {
           leftItem.text += " ";
         }
         leftItem.text += currentItem.text;

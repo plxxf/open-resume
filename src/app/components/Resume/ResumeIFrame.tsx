@@ -1,6 +1,6 @@
 "use client";
-import { useMemo } from "react";
-import Frame from "react-frame-component";
+import { useEffect, useMemo, useState } from "react";
+import Frame, { useFrame } from "react-frame-component";
 import {
   A4_HEIGHT_PX,
   A4_WIDTH_PX,
@@ -8,6 +8,10 @@ import {
   LETTER_HEIGHT_PX,
   LETTER_WIDTH_PX,
   LETTER_WIDTH_PT,
+  LETTER_HEIGHT_PT,
+  A4_HEIGHT_PT,
+  PAGE_MARGIN_PT,
+  PX_PER_PT,
 } from "lib/constants";
 import dynamic from "next/dynamic";
 import { getAllFontFamiliesToLoad } from "components/fonts/lib";
@@ -41,6 +45,42 @@ const getIframeInitialContent = (isA4: boolean) => {
 </html>`;
 };
 
+/** Reports the rendered resume height (px) from inside the iframe. */
+const ContentHeightReporter = ({ onHeight }: { onHeight: (px: number) => void }) => {
+  const { document: doc } = useFrame();
+  useEffect(() => {
+    if (!doc) return;
+    const target = doc.body;
+    const measure = () => {
+      const page = doc.querySelector("page") as HTMLElement | null;
+      onHeight((page || target).scrollHeight);
+    };
+    measure();
+    const view = doc.defaultView as (Window & typeof globalThis) | null;
+    const RO = view?.ResizeObserver || ResizeObserver;
+    const observer = new RO(measure);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [doc, onHeight]);
+  return null;
+};
+
+/**
+ * Where each PDF page ends in the continuous HTML preview. react-pdf repeats
+ * the top and bottom page margins on every page, so page n starts after
+ * (n - 1) full usable heights plus one top margin.
+ */
+const getPageBreaksPx = (contentPx: number, pageHeightPt: number) => {
+  const usablePt = pageHeightPt - PAGE_MARGIN_PT * 2;
+  const contentPt = contentPx / PX_PER_PT - PAGE_MARGIN_PT * 2;
+  const pages = Math.max(1, Math.ceil((contentPt - 1) / usablePt));
+  const breaks: number[] = [];
+  for (let n = 1; n < pages; n++) {
+    breaks.push((PAGE_MARGIN_PT + usablePt * n) * PX_PER_PT);
+  }
+  return { pages, breaks };
+};
+
 /**
  * Iframe is used here for style isolation, since react pdf uses pt unit.
  * It creates a sandbox document body that uses letter/A4 pt size as width.
@@ -57,6 +97,7 @@ const ResumeIframe = ({
   enablePDFViewer?: boolean;
 }) => {
   const isA4 = documentSize === "A4";
+  const [contentHeight, setContentHeight] = useState(0);
   const iframeInitialContent = useMemo(
     () => getIframeInitialContent(isA4),
     [isA4]
@@ -70,7 +111,10 @@ const ResumeIframe = ({
     );
   }
   const width = isA4 ? A4_WIDTH_PX : LETTER_WIDTH_PX;
-  const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX;
+  const pageHeight = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX;
+  // The preview grows with the content so every page can be scrolled to.
+  const height = Math.max(pageHeight, contentHeight);
+  const { pages, breaks } = getPageBreaksPx(height, isA4 ? A4_HEIGHT_PT : LETTER_HEIGHT_PT);
 
   return (
     <div
@@ -88,7 +132,7 @@ const ResumeIframe = ({
           height: `${height}px`,
           transform: `scale(${scale})`,
         }}
-        className={`origin-top-left bg-white shadow-lg`}
+        className={`relative origin-top-left bg-white shadow-lg`}
       >
         <Frame
           style={{ width: "100%", height: "100%" }}
@@ -96,8 +140,21 @@ const ResumeIframe = ({
           // key is used to force component to re-mount when document size changes
           key={isA4 ? "A4" : "LETTER"}
         >
+          <ContentHeightReporter onHeight={setContentHeight} />
           {children}
         </Frame>
+        {/* Page break markers: where the downloaded PDF starts a new page */}
+        {breaks.map((top, i) => (
+          <div
+            key={top}
+            className="pointer-events-none absolute left-0 right-0 border-t-2 border-dashed border-blue-300"
+            style={{ top: `${top}px` }}
+          >
+            <span className="absolute right-2 top-1 rounded bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700">
+              Page {i + 2} of {pages}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

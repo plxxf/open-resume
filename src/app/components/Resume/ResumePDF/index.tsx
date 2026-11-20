@@ -19,6 +19,7 @@ import { DEFAULT_FONT_COLOR } from "lib/redux/settingsSlice";
 import type { Settings, ShowForm } from "lib/redux/settingsSlice";
 import type { Resume } from "lib/redux/types";
 import { pruneEmpty, sectionHasContent } from "lib/resume-content";
+import { PAGE_MARGIN_PT } from "lib/constants";
 import { SuppressResumePDFErrorMessage } from "components/Resume/ResumePDF/common/SuppressResumePDFErrorMessage";
 
 /**
@@ -137,6 +138,9 @@ export const ResumePDF = ({
             style={{
               ...styles.flexCol,
               position: "relative",
+              // Vertical margins live on the Page so react-pdf repeats them on every page.
+              paddingTop: PAGE_MARGIN_PT + "pt",
+              paddingBottom: PAGE_MARGIN_PT + "pt",
               color: DEFAULT_FONT_COLOR,
               fontFamily,
               fontSize: fontSize + "pt",
@@ -162,7 +166,7 @@ export const ResumePDF = ({
                     style={{
                       ...styles.flexCol,
                       width: SIDEBAR_WIDTH,
-                      padding: "40pt 16pt 36pt 28pt",
+                      padding: "4pt 16pt 0 28pt",
                     }}
                   >
                     <ResumePDFSidebarContact profile={profile} isPDF={isPDF} />
@@ -174,7 +178,7 @@ export const ResumePDF = ({
                       ...styles.flexCol,
                       flexGrow: 1,
                       flexBasis: 0,
-                      padding: "36pt 40pt 36pt 22pt",
+                      padding: "0 40pt 0 22pt",
                     }}
                   >
                     {mainColumn}
@@ -185,7 +189,7 @@ export const ResumePDF = ({
               <View
                 style={{
                   ...styles.flexCol,
-                  padding: "36pt 50pt",
+                  padding: "0 50pt",
                 }}
               >
                 {mainColumn}
