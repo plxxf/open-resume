@@ -17,6 +17,7 @@ import {
 } from "lib/redux/settingsSlice";
 import { deepMerge } from "lib/deep-merge";
 import { readImportFromHash, clearImportHash } from "lib/import-from-hash";
+import { JD_KEY, JD_EVENT } from "components/Tailor/api";
 import type { Resume } from "lib/redux/types";
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
@@ -75,6 +76,14 @@ export const useSetInitialStore = () => {
           : {}),
       }) as Settings;
       dispatch(setResume(imported.resume));
+      if (imported.jd) {
+        try {
+          localStorage.setItem(JD_KEY, imported.jd);
+        } catch {
+          // Ignore
+        }
+        window.dispatchEvent(new Event(JD_EVENT));
+      }
       dispatch(setSettings(settings));
       // Save right away: the change listener may not be subscribed yet.
       saveStateToLocalStorage(store.getState());

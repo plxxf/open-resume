@@ -73,3 +73,22 @@ OpenResume is created with the NextJS web framework and follows its project stru
 3. Build the container `docker build -t open-resume .`
 4. Start the container `docker run -p 3000:3000 open-resume`
 5. Open your browser and visit [http://localhost:3000](http://localhost:3000) to see OpenResume live
+
+## AI tailoring (airesume)
+
+`/resume-builder` has a "Tailor to a job with AI" panel. It calls Cloudflare
+Pages Functions in `functions/api/` (shared code in `server/lib.js`):
+
+| Route | What it does |
+| --- | --- |
+| `GET /api/config` | Public settings (Google client ID, free runs per day) |
+| `POST /api/auth/google` | Verifies a Google sign-in and sets a signed session cookie |
+| `POST /api/auth/logout` | Clears the session cookie |
+| `GET /api/me` | Signed-in user and runs left today |
+| `POST /api/tailor` | Sends the resume and job description to the OpenAI API and returns suggested edits |
+
+Set these in Cloudflare Pages → Settings → Variables and Secrets (never in the repo):
+`OPENAI_API_KEY` (secret), `SESSION_SECRET` (secret, long random string),
+`GOOGLE_CLIENT_ID`, optional `OPENAI_MODEL` (default `gpt-4.1-mini`),
+`FREE_PER_DAY` (default 3), `SITE_DAILY_CAP` (default 300).
+Bind a KV namespace as `AIRESUME_KV` (Settings → Bindings).

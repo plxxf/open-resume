@@ -26,6 +26,7 @@ export interface ImportedResume {
   template?: string;
   documentSize?: "Letter" | "A4";
   customHeading?: string;
+  jd?: string;
 }
 
 const str = (value: unknown, max = MAX_FIELD) =>
@@ -120,6 +121,7 @@ export const readImportFromHash = (hash: string): ImportedResume | null => {
     template,
     documentSize,
     customHeading: str(r.custom?.heading, 60) || undefined,
+    jd: str(data.jd, 12000) || undefined,
   };
 };
 
