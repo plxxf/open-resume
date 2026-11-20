@@ -49,15 +49,15 @@ export const ENGLISH_FONT_FAMILIES = [
 ];
 type EnglishFontFamily = (typeof ENGLISH_FONT_FAMILIES)[number];
 
-export const NON_ENGLISH_FONT_FAMILIES = ["NotoSansSC"] as const;
+// airesume builds English resumes only. The Chinese font (NotoSansSC, ~26 MB per
+// file) was removed because Cloudflare Pages rejects files over 25 MiB.
+export const NON_ENGLISH_FONT_FAMILIES = [] as const;
 type NonEnglishFontFamily = (typeof NON_ENGLISH_FONT_FAMILIES)[number];
 
 export const NON_ENGLISH_FONT_FAMILY_TO_LANGUAGE: Record<
   NonEnglishFontFamily,
   string[]
-> = {
-  NotoSansSC: ["zh", "zh-CN", "zh-TW"],
-};
+> = {};
 
 export type FontFamily = EnglishFontFamily | NonEnglishFontFamily;
 export const FONT_FAMILY_TO_STANDARD_SIZE_IN_PT: Record<FontFamily, number> = {
@@ -73,8 +73,6 @@ export const FONT_FAMILY_TO_STANDARD_SIZE_IN_PT: Record<FontFamily, number> = {
   RobotoSlab: 10,
   PlayfairDisplay: 10,
   Merriweather: 10,
-  // Non-English Fonts
-  NotoSansSC: 11,
 };
 
 export const FONT_FAMILY_TO_DISPLAY_NAME: Record<FontFamily, string> = {
@@ -90,6 +88,4 @@ export const FONT_FAMILY_TO_DISPLAY_NAME: Record<FontFamily, string> = {
   RobotoSlab: "Roboto Slab",
   PlayfairDisplay: "Playfair Display",
   Merriweather: "Merriweather",
-  // Non-English Fonts
-  NotoSansSC: "思源黑体(简体)",
 };
