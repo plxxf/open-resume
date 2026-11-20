@@ -1,6 +1,10 @@
+"use client";
 import { useState } from "react";
-import { LockClosedIcon } from "@heroicons/react/24/solid";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUpTrayIcon,
+  LockClosedIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { parseResumeFromPdf } from "lib/parse-resume-from-pdf";
 import {
   getHasUsedAppBefore,
@@ -8,10 +12,9 @@ import {
 } from "lib/redux/local-storage";
 import { type ShowForm, initialSettings } from "lib/redux/settingsSlice";
 import { useRouter } from "next/navigation";
-import addPdfSrc from "public/assets/add-pdf.svg";
-import Image from "next/image";
 import { cx } from "lib/cx";
 import { deepClone } from "lib/deep-clone";
+import { validatePdfResume } from "lib/input-security";
 
 const defaultFileState = {
   name: "",
@@ -30,7 +33,8 @@ export const ResumeDropzone = ({
 }) => {
   const [file, setFile] = useState(defaultFileState);
   const [isHoveredOnDropzone, setIsHoveredOnDropzone] = useState(false);
-  const [hasNonPdfFile, setHasNonPdfFile] = useState(false);
+  const [error, setError] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
   const router = useRouter();
 
   const hasFile = Boolean(file.name);
@@ -46,60 +50,76 @@ export const ResumeDropzone = ({
     onFileUrlChange(fileUrl);
   };
 
-  const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const newFile = event.dataTransfer.files[0];
-    if (newFile.name.endsWith(".pdf")) {
-      setHasNonPdfFile(false);
-      setNewFile(newFile);
-    } else {
-      setHasNonPdfFile(true);
+  // Check type, size and the %PDF- signature before reading anything.
+  const acceptFile = async (newFile?: File) => {
+    if (!newFile) return;
+    const message = await validatePdfResume(newFile);
+    if (message) {
+      setError(message);
+      return;
     }
-    setIsHoveredOnDropzone(false);
-  };
-
-  const onInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const newFile = files[0];
+    setError("");
     setNewFile(newFile);
   };
 
+  const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsHoveredOnDropzone(false);
+    void acceptFile(event.dataTransfer.files[0]);
+  };
+
+  const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    void acceptFile(event.target.files?.[0]);
+    // Allow choosing the same file again after removing it.
+    event.target.value = "";
+  };
+
   const onRemove = () => {
+    if (file.fileUrl) URL.revokeObjectURL(file.fileUrl);
     setFile(defaultFileState);
+    setError("");
     onFileUrlChange("");
   };
 
   const onImportClick = async () => {
-    const resume = await parseResumeFromPdf(file.fileUrl);
-    const settings = deepClone(initialSettings);
+    setIsImporting(true);
+    setError("");
+    try {
+      const resume = await parseResumeFromPdf(file.fileUrl);
+      const settings = deepClone(initialSettings);
 
-    // Set formToShow settings based on uploaded resume if users have used the app before
-    if (getHasUsedAppBefore()) {
-      const sections = Object.keys(settings.formToShow) as ShowForm[];
-      const sectionToFormToShow: Record<ShowForm, boolean> = {
-        workExperiences: resume.workExperiences.length > 0,
-        educations: resume.educations.length > 0,
-        projects: resume.projects.length > 0,
-        skills: resume.skills.descriptions.length > 0,
-        custom: resume.custom.descriptions.length > 0,
-      };
-      for (const section of sections) {
-        settings.formToShow[section] = sectionToFormToShow[section];
+      // Set formToShow settings based on uploaded resume if users have used the app before
+      if (getHasUsedAppBefore()) {
+        const sections = Object.keys(settings.formToShow) as ShowForm[];
+        const sectionToFormToShow: Record<ShowForm, boolean> = {
+          workExperiences: resume.workExperiences.length > 0,
+          educations: resume.educations.length > 0,
+          projects: resume.projects.length > 0,
+          skills: resume.skills.descriptions.length > 0,
+          custom: resume.custom.descriptions.length > 0,
+        };
+        for (const section of sections) {
+          settings.formToShow[section] = sectionToFormToShow[section];
+        }
       }
-    }
 
-    saveStateToLocalStorage({ resume, settings });
-    router.push("/resume-builder");
+      saveStateToLocalStorage({ resume, settings });
+      router.push("/resume-builder");
+    } catch {
+      setIsImporting(false);
+      setError(
+        "We couldn't read text from this PDF. If it is a scanned image, open the editor and type your resume in instead."
+      );
+    }
   };
 
   return (
     <div
       className={cx(
-        "flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 ",
-        isHoveredOnDropzone && "border-sky-400",
-        playgroundView ? "pb-6 pt-4" : "py-12",
+        "upload-box",
+        playgroundView && "upload-box-compact",
+        isHoveredOnDropzone && "dragging",
+        hasFile && "has-file",
         className
       )}
       onDragOver={(event) => {
@@ -109,91 +129,80 @@ export const ResumeDropzone = ({
       onDragLeave={() => setIsHoveredOnDropzone(false)}
       onDrop={onDrop}
     >
-      <div
-        className={cx(
-          "text-center",
-          playgroundView ? "space-y-2" : "space-y-3"
-        )}
-      >
-        {!playgroundView && (
-          <Image
-            src={addPdfSrc}
-            className="mx-auto h-14 w-14"
-            alt="Add pdf"
-            aria-hidden="true"
-            priority
-          />
-        )}
-        {!hasFile ? (
-          <>
-            <p
-              className={cx(
-                "pt-3 text-gray-700",
-                !playgroundView && "text-lg font-semibold"
-              )}
-            >
-              Browse a pdf file or drop it here
-            </p>
-            <p className="flex text-sm text-gray-500">
-              <LockClosedIcon className="mr-1 mt-1 h-3 w-3 text-gray-400" />
-              File data is used locally and never leaves your browser
-            </p>
-          </>
-        ) : (
-          <div className="flex items-center justify-center gap-3 pt-3">
-            <div className="pl-7 font-semibold text-gray-900">
-              {file.name} - {getFileSizeString(file.size)}
+      {!hasFile ? (
+        <>
+          {!playgroundView && (
+            <ArrowUpTrayIcon className="upload-icon" aria-hidden="true" />
+          )}
+          <b>Choose or drop your PDF resume</b>
+          <span>PDF only · up to 5 MB</span>
+          <label
+            className={cx(
+              "cursor-pointer",
+              playgroundView ? "btn-secondary" : "btn-primary"
+            )}
+          >
+            Browse file
+            <input
+              type="file"
+              className="sr-only"
+              accept=".pdf,application/pdf"
+              onChange={onInputChange}
+            />
+          </label>
+        </>
+      ) : (
+        <>
+          <div className="upload-file">
+            <div>
+              <b>{file.name}</b>
+              <span>
+                {getFileSizeString(file.size)} · PDF signature checked
+              </span>
             </div>
             <button
               type="button"
-              className="outline-theme-blue rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+              className="upload-remove"
               title="Remove file"
+              aria-label="Remove file"
               onClick={onRemove}
             >
-              <XMarkIcon className="h-6 w-6" />
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
-        )}
-        <div className="pt-4">
-          {!hasFile ? (
-            <>
-              <label
-                className={cx(
-                  "within-outline-theme-purple cursor-pointer rounded-full px-6 pb-2.5 pt-2 font-semibold shadow-sm",
-                  playgroundView ? "border" : "bg-primary"
-                )}
-              >
-                Browse file
-                <input
-                  type="file"
-                  className="sr-only"
-                  accept=".pdf"
-                  onChange={onInputChange}
-                />
-              </label>
-              {hasNonPdfFile && (
-                <p className="mt-6 text-red-400">Only pdf file is supported</p>
+          {!playgroundView && (
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={isImporting}
+              onClick={onImportClick}
+            >
+              {isImporting ? (
+                "Reading your resume…"
+              ) : (
+                <>
+                  Import and continue <span aria-hidden="true">→</span>
+                </>
               )}
-            </>
-          ) : (
-            <>
-              {!playgroundView && (
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={onImportClick}
-                >
-                  Import and Continue <span aria-hidden="true">→</span>
-                </button>
-              )}
-              <p className={cx(" text-gray-500", !playgroundView && "mt-6")}>
-                Note: {!playgroundView ? "Import" : "Parser"} works best on
-                single column resume
-              </p>
-            </>
+            </button>
           )}
-        </div>
-      </div>
+          <span>
+            {playgroundView ? "The parser" : "Import"} works best on a
+            single-column resume.
+          </span>
+        </>
+      )}
+      {error && (
+        <p className="upload-error" role="alert">
+          {error}
+        </p>
+      )}
+      {!playgroundView && (
+        <p className="upload-lock">
+          <LockClosedIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          Read in your browser. Nothing is uploaded.
+        </p>
+      )}
     </div>
   );
 };

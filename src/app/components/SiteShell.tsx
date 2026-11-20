@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const MAIN_SITE = "https://airesume.blog";
 
 const APP_LINKS = [
-  ["/resume-import", "Import"],
+  ["/", "Import"],
   ["/resume-builder", "Editor"],
   ["/resume-parser", "How ATS reads your PDF"],
 ] as const;
