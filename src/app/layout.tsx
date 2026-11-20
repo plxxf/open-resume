@@ -13,6 +13,7 @@ const serif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app.airesume.blog"),
   title: { default: "airesume editor", template: "%s · airesume editor" },
   description:
     "Edit your resume in the browser, choose a layout and download a clean PDF. Part of airesume.blog.",

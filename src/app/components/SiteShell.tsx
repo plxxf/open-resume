@@ -20,17 +20,8 @@ const PAGES_WITHOUT_FOOTER = ["/resume-builder", "/resume-parser"];
 
 export const Brand = () => (
   <Link href="/" className="brand" aria-label="airesume editor home">
-    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#2563eb" />
-      <path
-        d="M10 9h8l4 4v10H10z M18 9v4h4 M13 17h6 M13 20h4"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src="/logo.png" width="28" height="28" alt="" className="brand-mark" />
     <span className="brand-word">
       <span className="brand-ai">ai</span>resume
     </span>
